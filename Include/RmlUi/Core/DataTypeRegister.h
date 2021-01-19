@@ -54,6 +54,9 @@ public:
 	template <typename MemberType>
 	StructHandle<Object>& RegisterMember(const String& name, MemberType Object::* member_ptr);
 
+    template<typename GetterType>
+    inline StructHandle<Object>& RegisterMemberGetter(const String& name, GetterType member_ptr);
+
 	StructHandle<Object>& RegisterMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func = nullptr);
 
 	explicit operator bool() const {
@@ -102,6 +105,43 @@ public:
 		return StructHandle<T>(this, struct_variable_raw);
 	}
 
+	template<typename PointerType, typename InnerType, typename Definition>
+	bool RegisterPointer()
+	{
+		VariableDefinition* value_variable = GetOrAddScalar<InnerType>();
+		RMLUI_ASSERTMSG(value_variable, "Underlying type of the pointer has not been registered.");
+		if (!value_variable)
+			return false;
+
+		FamilyId container_id = Family<PointerType>::Id();
+
+		auto ptr_variable = MakeUnique<Definition>(value_variable);
+
+		bool inserted = type_register.emplace(container_id, std::move(ptr_variable)).second;
+		if (!inserted)
+		{
+			RMLUI_ERRORMSG("Pointer type already declared.");
+			return false;
+		}
+
+		return true;
+	}
+
+	template<typename PointerType>
+	bool RegisterPointer()
+	{
+		using ValueType = typename std::remove_pointer<PointerType>::type;
+		static_assert(std::is_pointer<PointerType>::value, "Provided type is not a pointer!");
+		return RegisterPointer<PointerType, ValueType, PointerDefinition<PointerType>>();
+	}
+
+	template<typename PointerType>
+	bool RegisterComplexPointer()
+	{
+		using ValueType = typename PointerType::element_type;
+		return RegisterPointer<PointerType, ValueType, ComplexPointerDefinition<PointerType>>();
+	}
+
 	template<typename Container>
 	bool RegisterArray()
 	{
@@ -140,8 +180,8 @@ public:
 		return it->second.get();
 	}
 
-	template<typename T, typename std::enable_if<is_valid_data_scalar<T>::value, int>::type = 0>
-	VariableDefinition* GetOrAddScalar()
+	template<typename T, typename Definition, typename std::enable_if<is_valid_data_scalar<T>::value, int>::type = 0>
+	VariableDefinition* GetOrAddScalarGeneric()
 	{
 		FamilyId id = Family<T>::Id();
 
@@ -150,17 +190,29 @@ public:
 		UniquePtr<VariableDefinition>& definition = result.first->second;
 
 		if (inserted)
-			definition = MakeUnique<ScalarDefinition<T>>();
+			definition = MakeUnique<Definition>();
 
 		return definition.get();
 	}
 
-	template<typename T, typename std::enable_if<!is_valid_data_scalar<T>::value, int>::type = 0>
-	VariableDefinition* GetOrAddScalar()
+	template<typename T, typename Definition, typename std::enable_if<!is_valid_data_scalar<T>::value, int>::type = 0>
+	VariableDefinition* GetOrAddScalarGeneric()
 	{
 		return Get<T>();
 	}
-
+	
+	template<typename T>
+	VariableDefinition* GetOrAddScalar()
+	{
+	    return GetOrAddScalarGeneric<T, ScalarDefinition<T>>();
+	}
+	
+	template<typename T>
+	VariableDefinition* GetOrAddScalarGetter()
+	{
+	    return GetOrAddScalarGeneric<T, ScalarGetterDefinition<T>>();
+	}
+ 
 	template<typename T>
 	VariableDefinition* Get()
 	{
@@ -187,17 +239,27 @@ private:
 };
 
 template<typename Object>
-template<typename MemberType>
+template <typename MemberType>
 inline StructHandle<Object>& StructHandle<Object>::RegisterMember(const String& name, MemberType Object::* member_ptr) {
-	VariableDefinition* member_type = type_register->GetOrAddScalar<MemberType>();
-	struct_definition->AddMember(name, MakeUnique<StructMemberObject<Object, MemberType>>(member_type, member_ptr));
-	return *this;
+    VariableDefinition* member_type = type_register->GetOrAddScalar<MemberType>();
+    struct_definition->AddMember(name, MakeUnique<StructMemberObject<Object, MemberType>>(member_type, member_ptr));
+    return *this;
 }
+
 template<typename Object>
 inline StructHandle<Object>& StructHandle<Object>::RegisterMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func) {
 	VariableDefinition* definition = type_register->RegisterMemberFunc<Object>(get_func, set_func);
 	struct_definition->AddMember(name, MakeUnique<StructMemberFunc>(definition));
 	return *this;
+}
+
+template<typename Object>
+template<typename GetterType>
+inline StructHandle<Object>& StructHandle<Object>::RegisterMemberGetter(const String& name, GetterType member_ptr) {
+    using ReturnType = typename std::result_of<GetterType(Object)>::type;
+    VariableDefinition* member_type = type_register->GetOrAddScalarGetter<ReturnType>();
+    struct_definition->AddMember(name, MakeUnique<StructMemberObjectGetter<Object, GetterType>>(member_type, member_ptr));
+    return *this;
 }
 
 } // namespace Rml

@@ -47,6 +47,38 @@ enum class DataVariableType { Scalar, Array, Struct, Function, MemberFunction };
 *   Together they can be used to get and set variables between the user side and data model side.
 */
 
+template <typename Object, typename GetterType, typename ReturnType>
+struct Extractor {
+	static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
+	{
+		auto tmp = static_cast<Object*>(base_ptr);
+		auto &res = (tmp->*member_ptr)();
+		auto v = (const void*)&(res);
+		return const_cast<void*>(v);
+	}
+	static void* ConvertPointer(Object& base_obj)
+	{
+		auto v = (const void*)&(base_obj);
+		return const_cast<void*>(v);
+	}
+};
+
+template <typename Object, typename GetterType, typename ReturnType>
+struct Extractor<Object, GetterType, ReturnType*> {
+	static void* ExtractPointer(void* base_ptr, GetterType member_ptr)
+	{
+		auto tmp = static_cast<Object*>(base_ptr);
+		auto res = (tmp->*member_ptr)();
+		auto ptr = (const void*)(res);
+		return const_cast<void*>(ptr);
+	}
+	static void* ConvertPointer(Object& base_obj)
+	{
+		auto v = (const void*)(base_obj);
+		return const_cast<void*>(v);
+	}
+};
+
 class RMLUICORE_API DataVariable {
 public:
 	DataVariable() {}
@@ -54,6 +86,7 @@ public:
 
 	explicit operator bool() const { return definition; }
 
+	void Access(DataVariable& out);
 	bool Get(Variant& variant);
 	bool Set(const Variant& variant);
 	int Size();
@@ -77,6 +110,7 @@ public:
 	virtual ~VariableDefinition() = default;
 	DataVariableType Type() const { return type; }
 
+	virtual void Access(void* ptr, VariableDefinition*& output_def, void*& output_ptr);
 	virtual bool Get(void* ptr, Variant& variant);
 	virtual bool Set(void* ptr, const Variant& variant);
 
@@ -107,6 +141,91 @@ public:
 	bool Set(void* ptr, const Variant& variant) override
 	{
 		return variant.GetInto<T>(*static_cast<T*>(ptr));
+	}
+};
+
+template<typename T>
+class PointerDefinition final : public VariableDefinition {
+public:
+	PointerDefinition(VariableDefinition* underlying_definition) : VariableDefinition(DataVariableType::Scalar), underlying_definition(underlying_definition){}
+
+	void Access(void* ptr, VariableDefinition*& output_def, void*& output_ptr) override
+	{
+		output_def = underlying_definition;
+		output_ptr =  ptr;
+	}
+	bool Get(void* ptr, Variant& variant) override
+	{
+		return underlying_definition->Get(ptr, variant);
+	}
+
+	bool Set(void* ptr, const Variant& variant) override
+	{
+		return underlying_definition->Set(ptr, variant);
+	}
+
+	DataVariable Child(void* ptr, const DataAddressEntry& address) override
+	{
+		return underlying_definition->Child(ptr, address);
+	}
+
+protected:
+	VariableDefinition* underlying_definition;
+};
+
+template<typename T>
+class ComplexPointerDefinition final : public VariableDefinition {
+public:
+	ComplexPointerDefinition(VariableDefinition* underlying_definition) : VariableDefinition(DataVariableType::Scalar), underlying_definition(underlying_definition){}
+	using elty = typename T::element_type;
+    void Access(void* ptr, VariableDefinition*& output_def, void*& output_ptr) override
+	{
+		output_def = underlying_definition;
+		output_ptr = getPtr(ptr);
+	}
+	bool Get(void* ptr, Variant& variant) override
+	{
+		ptr = getPtr(ptr);
+		return underlying_definition->Get(ptr, variant);
+	}
+
+	bool Set(void* ptr, const Variant& variant) override
+	{
+		ptr = getPtr(ptr);
+		return underlying_definition->Set(ptr, variant);
+	}
+
+	DataVariable Child(void* ptr, const DataAddressEntry& address) override
+	{
+		ptr = getPtr(ptr);
+		return underlying_definition->Child(ptr, address);
+	}
+
+private:
+	void* getPtr(void* ptr)
+	{
+		T* shptr = static_cast<T*>(ptr);
+		elty* tmp = shptr->get();
+		return (void*) tmp;
+	}
+protected:
+	VariableDefinition* underlying_definition;
+};
+
+template<typename T>
+class ScalarGetterDefinition final : public VariableDefinition {
+public:
+    ScalarGetterDefinition() : VariableDefinition(DataVariableType::Scalar) {}
+
+	bool Get(void* ptr, Variant& variant) override
+	{
+		variant = *static_cast<T*>(ptr);
+		return true;
+	}
+	bool Set(void* RMLUI_UNUSED_PARAMETER(ptr), const Variant& RMLUI_UNUSED_PARAMETER(variant)) override
+	{
+        Log::Message(Log::LT_WARNING, "Only getter exposed for this variable.");
+        return false;
 	}
 };
 
@@ -145,6 +264,7 @@ public:
 		return int(static_cast<Container*>(ptr)->size());
 	}
 
+	using value_type = typename Container::value_type;
 protected:
 	DataVariable Child(void* void_ptr, const DataAddressEntry& address) override
 	{
@@ -164,7 +284,7 @@ protected:
 		auto it = ptr->begin();
 		std::advance(it, index);
 
-		void* next_ptr = &(*it);
+		void* next_ptr = Extractor<value_type, void*, value_type>::ConvertPointer(*it);
 		return DataVariable(underlying_definition, next_ptr);
 	}
 
@@ -192,11 +312,41 @@ public:
 	StructMemberObject(VariableDefinition* definition, MemberType Object::* member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
 
 	void* GetPointer(void* base_ptr) override {
-		return &(static_cast<Object*>(base_ptr)->*member_ptr);
+		auto tmp = static_cast<Object*>(base_ptr);
+		auto& res = tmp->*member_ptr;
+		return &(res);
 	}
 
 private:
 	MemberType Object::* member_ptr;
+};
+
+template <typename Object, typename MemberType>
+class StructMemberObject<Object, MemberType*> final : public StructMember {
+public:
+	StructMemberObject(VariableDefinition* definition, MemberType* Object::* member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
+
+	void* GetPointer(void* base_ptr) override {
+		auto tmp = static_cast<Object*>(base_ptr);
+		auto res = tmp->*member_ptr;
+		return (void*) res;
+	}
+
+private:
+	MemberType* Object::* member_ptr;
+};
+
+template <typename Object, typename GetterType>
+class StructMemberObjectGetter final : public StructMember {
+public:
+    StructMemberObjectGetter(VariableDefinition* definition, GetterType member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
+    
+    void* GetPointer(void* base_ptr) override {
+        return Extractor<Object, GetterType, typename std::result_of<GetterType(Object)>::type>::ExtractPointer(base_ptr, member_ptr);
+    }
+
+private:
+    GetterType member_ptr;
 };
 
 class StructMemberFunc final : public StructMember {
