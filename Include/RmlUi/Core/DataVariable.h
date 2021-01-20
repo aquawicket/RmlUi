@@ -232,7 +232,7 @@ private:
 
 	static void* DereferencePointer(void* ptr)
 	{
-		return (void*)(&(*(*static_cast<T*>(ptr))));
+		return PointerTraits<T>::Dereference(ptr);
 	}
 
 	VariableDefinition* underlying_definition;
@@ -263,6 +263,41 @@ public:
 
 private:
 	MemberType Object::* member_ptr;
+};
+
+
+template <typename Object, typename ReturnType, typename BasicReturnType>
+class StructMemberObjectGetter final : public StructMember {
+public:
+	using MemberFunc = ReturnType(Object::*)();
+
+    StructMemberObjectGetter(VariableDefinition* definition, MemberFunc member_ptr) : StructMember(definition), member_ptr(member_ptr) {}
+    
+    void* GetPointer(void* base_ptr) override {
+		return (void*)Extract((static_cast<Object*>(base_ptr)->*member_ptr)());
+    }
+
+private:
+	// Pointer return types
+	BasicReturnType* Extract(BasicReturnType* value) {
+		return value;
+	}
+	// Reference return types
+	template<typename R = ReturnType, typename std::enable_if<!std::is_same<R, BasicReturnType>::value, int>::type = 0>
+	BasicReturnType* Extract(BasicReturnType& value) {
+		return &value;
+	}
+	// Value return types
+	template<typename R = ReturnType, typename std::enable_if<std::is_same<R, BasicReturnType>::value, int>::type = 0>
+	BasicReturnType* Extract(BasicReturnType value) {
+		static_assert(std::is_copy_assignable<BasicReturnType>::value, "Value types returned from Struct getter functions must be copy assignable.");
+		static_assert(std::is_default_constructible<BasicReturnType>::value, "Value types returned from Struct getter functions must be default constructible.");
+		static BasicReturnType stored_value;
+		stored_value = value;
+		return &stored_value;
+	}
+
+	MemberFunc member_ptr;
 };
 
 class StructMemberFunc final : public StructMember {

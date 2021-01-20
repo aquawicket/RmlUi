@@ -65,21 +65,33 @@ template<class T>
 struct PointerTraits {
 	using is_pointer = std::false_type;
 	using element_type = T;
+	static void* Dereference(void* ptr) {
+		return ptr;
+	}
 };
 template<class T>
 struct PointerTraits<T*> {
 	using is_pointer = std::true_type;
 	using element_type = T;
+	static void* Dereference(void* ptr) {
+		return (void*)*static_cast<T**>(ptr);
+	}
 };
 template<class T>
 struct PointerTraits<UniquePtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
+	static void* Dereference(void* ptr) {
+		return (void*)static_cast<UniquePtr<T>*>(ptr)->get();
+	}
 };
 template<class T>
 struct PointerTraits<SharedPtr<T>> {
 	using is_pointer = std::true_type;
 	using element_type = T;
+	static void* Dereference(void* ptr) {
+		return (void*)static_cast<SharedPtr<T>*>(ptr)->get();
+	}
 };
 
 

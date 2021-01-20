@@ -57,6 +57,9 @@ public:
 	template <typename MemberType>
 	StructHandle<Object>& RegisterMember(const String& name, MemberType Object::* member_ptr);
 
+    template<typename ReturnType>
+    StructHandle<Object>& RegisterMemberGetter(const String& name, ReturnType(Object::*member_func_ptr)());
+
 	StructHandle<Object>& RegisterMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func = nullptr);
 
 	explicit operator bool() const {
@@ -213,10 +216,10 @@ private:
 	VariableDefinition* GetDefinitionDetail()
 	{
 		static_assert(PointerTraits<T>::is_pointer::value, "Not a valid pointer type.");
-		static_assert(!PointerTraits<PointerTraits<T>::element_type>::is_pointer::value, "Recursive pointer type (pointer to pointer) detected.");
+		static_assert(!PointerTraits<typename PointerTraits<T>::element_type>::is_pointer::value, "Recursive pointer type (pointer to pointer) detected.");
 
 		// Get the underlying definition.
-		VariableDefinition* underlying_definition = GetDefinitionDetail<typename std::remove_cv<PointerTraits<T>::element_type>::type>();
+		VariableDefinition* underlying_definition = GetDefinitionDetail<typename std::remove_cv<typename PointerTraits<T>::element_type>::type>();
 		if (!underlying_definition)
 		{
 			RMLUI_LOG_TYPE_ERROR(T, "Underlying type of pointer not registered.");
@@ -253,6 +256,16 @@ template<typename Object>
 inline StructHandle<Object>& StructHandle<Object>::RegisterMemberFunc(const String& name, MemberGetFunc<Object> get_func, MemberSetFunc<Object> set_func) {
 	VariableDefinition* definition = type_register->RegisterMemberFunc<Object>(get_func, set_func);
 	struct_definition->AddMember(name, MakeUnique<StructMemberFunc>(definition));
+	return *this;
+}
+
+template<typename Object>
+template<typename ReturnType>
+inline StructHandle<Object>& StructHandle<Object>::RegisterMemberGetter(const String& name, ReturnType(Object::*member_func_ptr)())
+{
+	using BasicReturnType = typename std::remove_pointer<typename std::remove_reference<ReturnType>::type>::type;
+	VariableDefinition* underlying_definition = type_register->GetDefinition<BasicReturnType>();
+	struct_definition->AddMember(name, MakeUnique<StructMemberObjectGetter<Object, ReturnType, BasicReturnType>>(underlying_definition, member_func_ptr));
 	return *this;
 }
 

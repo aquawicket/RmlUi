@@ -170,15 +170,57 @@ li {
 <panel data-model="basics">
 	<h1>{{title}}</h1>
 	<p data-if="show_text">The quick brown fox jumps over the lazy {{animal}}.</p>
-	<input type="text" data-value="test2.val"/>
+	<input type="text" data-value="outer.inner.member"/>
+	<p>{{ outer.inner.member }}</p>
+	
 	<p>{{ test }}</p>
 	<p>{{ str1.val }}</p>
 	<p>{{ str2.val }}</p>
 	<p>{{ str3.val }}</p>
-	<p>{{ arr[0].val }}</p>
 	<p>{{ test2.val }}</p>
-	<!--<p>{{ str2.val }}</p>
-	<p>{{ str3.val }}</p>-->
+	
+	<h1>Basic</h1>
+	<p>{{ basic.a }}</p>
+	<p>{{ basic.b }}</p>
+	<p>{{ basic.c }}</p>
+	<p>{{ basic.d }}</p>
+	<p>{{ basic.e }}</p>
+	<p>{{ basic.f }}</p>
+	<p>{{ basic.g }}</p>
+	<p>{{ basic.h }}</p>
+	
+	<h1>Wrapped</h1>
+	<p>{{ wrapped.a.val }}</p>
+	<p>{{ wrapped.b.val }}</p>
+	<p>{{ wrapped.c.val }}</p>
+	<p>{{ wrapped.d.val }}</p>
+	<p>{{ wrapped.e.val }}</p>
+	<p>{{ wrapped.f.val }}</p>
+	<p>{{ wrapped.g.val }}</p>
+	<p>{{ wrapped.h.val }}</p>
+	
+	<h1>Pointed</h1>
+	<p>{{ pointed.a.val }}</p>
+	<p>{{ pointed.e.val }}</p>
+	<p>{{ pointed.f.val }}</p>
+	<p>{{ pointed.g.val }}</p>
+	<p>{{ pointed.h.val }}</p>
+	
+	<h1>ConstPointed</h1>
+	<p>{{ const_pointed.a.val }}</p>
+	<p>{{ const_pointed.e.val }}</p>
+	<p>{{ const_pointed.f.val }}</p>
+	<p>{{ const_pointed.g.val }}</p>
+	<p>{{ const_pointed.h.val }}</p>
+	
+	<h1>Arrays</h1>
+	<p><span data-for="arrays.a">{{ it }} </span></p>
+	<p><span data-for="arrays.b">{{ it }} </span></p>
+	<p><span data-for="arrays.c">{{ it }} </span></p>
+	<p><span data-for="arrays.d">{{ it.val }} </span></p>
+	<p><span data-for="arrays.e">{{ it.val }} </span></p>
+	<p><span data-for="arrays.f">{{ it.val }} </span></p>
+	<p><span data-for="arrays.g">{{ it.val }} </span></p>
 </panel>
 <tab>Events</tab>
 <panel id="welcome" data-model="events">
