@@ -36,6 +36,8 @@
 
 namespace BasicExample {
 
+	using namespace Rml;
+
 	Rml::DataModelHandle model_handle;
 
 	struct MyData {
@@ -43,6 +45,46 @@ namespace BasicExample {
 		Rml::String animal = "dog";
 		bool show_text = true;
 	} my_data;
+
+	struct StringWrap
+	{
+		StringWrap(String val = "wrap_default") : val(val) {}
+		String val;
+	};
+
+	StringWrap gStr0 = StringWrap("obj");
+	StringWrap* gStr1 = new StringWrap("raw");
+	UniquePtr<StringWrap> gStr2 = MakeUnique<StringWrap>("unique");
+	SharedPtr<StringWrap> gStr3 = MakeShared<StringWrap>("shared");
+	const StringWrap* gStr4 = new StringWrap("const raw");
+	const int* const_ptr_test = new int(5);
+
+	struct Blueprint
+	{
+		String test = "yes";
+		String& getTest()
+		{
+			return test;
+		}
+		StringWrap test2;
+		const StringWrap& getTest2()
+		{
+			return test2;
+		}
+		StringWrap* test3;
+		const StringWrap* test4 = gStr1;
+		SharedPtr<StringWrap> test5 = gStr3;
+		SharedPtr<StringWrap>& getTest5()
+		{
+			return test5;
+		}
+		StringWrap* getTest6()
+		{
+			return test3;
+		}
+		std::vector<SharedPtr<StringWrap>> arr{ MakeShared<StringWrap>("array.0") };
+	} blueprint;
+
 
 	bool Initialize(Rml::Context* context)
 	{
@@ -53,6 +95,47 @@ namespace BasicExample {
 		constructor.Bind("title", &my_data.title);
 		constructor.Bind("animal", &my_data.animal);
 		constructor.Bind("show_text", &my_data.show_text);
+
+		// NEW
+		
+		if (auto handle = constructor.RegisterStruct<StringWrap>())
+		{
+			handle.RegisterMember("val", &StringWrap::val);
+		}
+
+		constructor.Bind("test", &const_ptr_test);
+		constructor.Bind("test2", &gStr4);
+
+		
+		//if (auto handle = constructor.RegisterStruct<StringWrap*>())
+		//{
+		//	handle.RegisterMember("val", &StringWrap::val);
+		//}
+
+		constructor.RegisterArray<decltype(blueprint.arr)>();
+
+		constructor.Bind("str0", &gStr0);
+		constructor.Bind("str1", &gStr1);
+		constructor.Bind("str2", &gStr2);
+		constructor.Bind("str3", &gStr3);
+
+		constructor.Bind("arr", &blueprint.arr);
+
+		//if (auto handle = constructor.RegisterStruct<Blueprint>())
+		//{
+		//	handle.RegisterMemberGetter("test", &Blueprint::getTest);
+		//	handle.RegisterMemberGetter("test2", &Blueprint::getTest2);
+		//	handle.RegisterMember("test3", &Blueprint::test3);
+		//	handle.RegisterMember("test4", &Blueprint::test4);
+		//	handle.RegisterMember("test5", &Blueprint::test5);
+		//	handle.RegisterMemberGetter("gtest5", &Blueprint::getTest5);
+		//	handle.RegisterMemberGetter("test6", &Blueprint::getTest6);
+		//	handle.RegisterMember("arr", &Blueprint::arr);
+		//}
+
+		//constructor.Bind("bp", new Blueprint);
+
+		// end NEW
 
 		model_handle = constructor.GetModelHandle();
 

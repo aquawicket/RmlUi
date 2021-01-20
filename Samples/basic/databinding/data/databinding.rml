@@ -170,7 +170,15 @@ li {
 <panel data-model="basics">
 	<h1>{{title}}</h1>
 	<p data-if="show_text">The quick brown fox jumps over the lazy {{animal}}.</p>
-	<input type="text" data-value="animal"/>
+	<input type="text" data-value="test2.val"/>
+	<p>{{ test }}</p>
+	<p>{{ str1.val }}</p>
+	<p>{{ str2.val }}</p>
+	<p>{{ str3.val }}</p>
+	<p>{{ arr[0].val }}</p>
+	<p>{{ test2.val }}</p>
+	<!--<p>{{ str2.val }}</p>
+	<p>{{ str3.val }}</p>-->
 </panel>
 <tab>Events</tab>
 <panel id="welcome" data-model="events">
