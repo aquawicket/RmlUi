@@ -46,283 +46,15 @@ namespace BasicExample {
 		bool show_text = true;
 	} my_data;
 
-	struct StringWrap
-	{
-		StringWrap(String val = "wrap_default") : val(val) {}
-		String val;
-	};
-
-	StringWrap gStr0 = StringWrap("obj");
-	StringWrap* gStr1 = new StringWrap("raw");
-	UniquePtr<StringWrap> gStr2 = MakeUnique<StringWrap>("unique");
-	SharedPtr<StringWrap> gStr3 = MakeShared<StringWrap>("shared");
-	const StringWrap* gStr4 = new StringWrap("const raw");
-	const int* const_ptr_test = new int(5);
-
-	struct Basic
-	{
-		int a = 1;
-		int* b = new int(2);
-		const int* c = new int(3);
-
-		int GetD() {
-			return 4;
-		}
-		int& GetE() {
-			static int e = 5;
-			return e;
-		}
-		int* GetF() {
-			static int f = 6;
-			return &f;
-		}
-		const int& GetG() {
-			static int g = 7;
-			return g;
-		}
-		const int* GetH() {
-			static int h = 8;
-			return &h;
-		}
-
-	};
-
-	struct Wrapped
-	{
-		StringWrap a = { "a" };
-		StringWrap* b = new StringWrap("b");
-		const StringWrap* c = new StringWrap("c");
-
-		StringWrap GetD() {
-			return { "d" };
-		}
-		StringWrap& GetE() {
-			static StringWrap e = { "e" };
-			return e;
-		}
-		StringWrap* GetF() {
-			static StringWrap f = { "f" };
-			return &f;
-		}
-		const StringWrap& GetG() {
-			static StringWrap g = { "g" };
-			return g;
-		}
-		const StringWrap* GetH() {
-			static StringWrap h = { "h" };
-			return &h;
-		}
-	};
-
-	using StringWrapPtr = UniquePtr<StringWrap>;
-
-	struct Pointed
-	{
-		StringWrapPtr a = MakeUnique<StringWrap>("a");
-
-		// We disallow recursive pointer types (pointer to pointer)
-		struct Invalid
-		{
-			StringWrapPtr* b = new StringWrapPtr(new StringWrap("b"));
-			const StringWrapPtr* c = new StringWrapPtr(new StringWrap("c"));
-			StringWrapPtr GetD() {
-				return MakeUnique<StringWrap>("d");
-			}
-		};
-
-		StringWrapPtr& GetE() {
-			static StringWrapPtr e = MakeUnique<StringWrap>("e");
-			return e;
-		}
-		StringWrapPtr* GetF() {
-			static StringWrapPtr f = MakeUnique<StringWrap>("f");
-			return &f;
-		}
-		const StringWrapPtr& GetG() {
-			static StringWrapPtr g = MakeUnique<StringWrap>("g");
-			return g;
-		}
-		const StringWrapPtr* GetH() {
-			static StringWrapPtr h = MakeUnique<StringWrap>("h");
-			return &h;
-		}
-	};
-
-	using StringWrapConstPtr = UniquePtr<const StringWrap>;
-
-	struct ConstPointed
-	{
-		StringWrapConstPtr a = MakeUnique<StringWrap>("a");
-
-		// We disallow recursive pointer types (pointer to pointer)
-		// -- Invalid
-		StringWrapConstPtr* b = new StringWrapConstPtr(new StringWrap("b"));
-		const StringWrapConstPtr* c = new StringWrapConstPtr(new StringWrap("c"));
-
-		StringWrapConstPtr GetD() {
-			return MakeUnique<StringWrap>("d");
-		}
-		// -- End Invalid
-
-		StringWrapConstPtr& GetE() {
-			static StringWrapConstPtr e = MakeUnique<StringWrap>("e");
-			return e;
-		}
-		StringWrapConstPtr* GetF() {
-			static StringWrapConstPtr f = MakeUnique<StringWrap>("f");
-			return &f;
-		}
-		const StringWrapConstPtr& GetG() {
-			static StringWrapConstPtr g = MakeUnique<StringWrap>("g");
-			return g;
-		}
-		const StringWrapConstPtr* GetH() {
-			static StringWrapConstPtr h = MakeUnique<StringWrap>("h");
-			return &h;
-		}
-	};
-
-	struct Arrays {
-		Vector<int> a = { 10, 11, 12 };
-		Vector<int*> b = { new int(20), new int(21), new int(22) };
-		Vector<const int*> c = { new int(30), new int(31), new int(32) };
-		Vector<StringWrap> d = { StringWrap("d1"), StringWrap("d2"), StringWrap("d3") };
-		Vector<StringWrap*> e = { new StringWrap("e1"), new StringWrap("e2"), new StringWrap("e3") };
-		Vector<StringWrapPtr> f;
-		Vector<StringWrapConstPtr> g;
-		Arrays() {
-			f.emplace_back(MakeUnique<StringWrap>("f1"));
-			f.emplace_back(MakeUnique<StringWrap>("f2"));
-			f.emplace_back(MakeUnique<StringWrap>("f3"));
-			g.emplace_back(MakeUnique<StringWrap>("g1"));
-			g.emplace_back(MakeUnique<StringWrap>("g2"));
-			g.emplace_back(MakeUnique<StringWrap>("g3"));
-		}
-	};
-
-	struct foo {
-		int* member = new int(99);
-	};
-	struct bar {
-		foo* inner = new foo;
-	};
-	bar* outer = new bar;
-
 	bool Initialize(Rml::Context* context)
 	{
 		Rml::DataModelConstructor constructor = context->CreateDataModel("basics");
 		if (!constructor)
 			return false;
 
-
-		if (auto handle = constructor.RegisterStruct<foo>())
-		{
-			handle.RegisterMember("member", &foo::member);
-		}
-		if (auto handle = constructor.RegisterStruct<bar>())
-		{
-			handle.RegisterMember("inner", &bar::inner);
-		}
-		constructor.Bind("outer", &outer);
-
-
 		constructor.Bind("title", &my_data.title);
 		constructor.Bind("animal", &my_data.animal);
 		constructor.Bind("show_text", &my_data.show_text);
-
-		// NEW
-		
-		if (auto handle = constructor.RegisterStruct<StringWrap>())
-		{
-			handle.RegisterMember("val", &StringWrap::val);
-		}
-
-		constructor.Bind("test", &const_ptr_test);
-		constructor.Bind("test2", &gStr4);
-
-		constructor.Bind("str0", &gStr0);
-		constructor.Bind("str1", &gStr1);
-		constructor.Bind("str2", &gStr2);
-		constructor.Bind("str3", &gStr3);
-
-		if (auto handle = constructor.RegisterStruct<Basic>())
-		{
-			handle.RegisterMember("a", &Basic::a);
-			handle.RegisterMember("b", &Basic::b);
-			handle.RegisterMember("c", &Basic::c);
-			handle.RegisterMemberGetter("d", &Basic::GetD);
-			handle.RegisterMemberGetter("e", &Basic::GetE);
-			handle.RegisterMemberGetter("f", &Basic::GetF);
-			handle.RegisterMemberGetter("g", &Basic::GetG);
-			handle.RegisterMemberGetter("h", &Basic::GetH);
-		}
-		constructor.Bind("basic", new Basic);
-
-		if (auto handle = constructor.RegisterStruct<Wrapped>())
-		{
-			handle.RegisterMember("a", &Wrapped::a);
-			handle.RegisterMember("b", &Wrapped::b);
-			handle.RegisterMember("c", &Wrapped::c);
-			handle.RegisterMemberGetter("d", &Wrapped::GetD);
-			handle.RegisterMemberGetter("e", &Wrapped::GetE);
-			handle.RegisterMemberGetter("f", &Wrapped::GetF);
-			handle.RegisterMemberGetter("g", &Wrapped::GetG);
-			handle.RegisterMemberGetter("h", &Wrapped::GetH);
-		}
-		constructor.Bind("wrapped", new Wrapped);
-
-		if (auto handle = constructor.RegisterStruct<Pointed>())
-		{
-			handle.RegisterMember("a", &Pointed::a);
-			//handle.RegisterMember("b", &Pointed::b);
-			//handle.RegisterMember("c", &Pointed::c);
-			//handle.RegisterMemberGetter("d", &Pointed::GetD);
-			handle.RegisterMemberGetter("e", &Pointed::GetE);
-			handle.RegisterMemberGetter("f", &Pointed::GetF);
-			handle.RegisterMemberGetter("g", &Pointed::GetG);
-			handle.RegisterMemberGetter("h", &Pointed::GetH);
-		}
-		constructor.Bind("pointed", new Pointed);
-
-
-		if (auto handle = constructor.RegisterStruct<ConstPointed>())
-		{
-			handle.RegisterMember("a", &ConstPointed::a);
-			//handle.RegisterMember("b", &ConstPointed::b);
-			//handle.RegisterMember("c", &ConstPointed::c);
-			//handle.RegisterMemberGetter("d", &ConstPointed::GetD);
-			handle.RegisterMemberGetter("e", &ConstPointed::GetE);
-			handle.RegisterMemberGetter("f", &ConstPointed::GetF);
-			handle.RegisterMemberGetter("g", &ConstPointed::GetG);
-			handle.RegisterMemberGetter("h", &ConstPointed::GetH);
-		}
-		constructor.Bind("const_pointed", new ConstPointed);
-
-
-		constructor.RegisterArray<decltype(Arrays::a)>();
-		constructor.RegisterArray<decltype(Arrays::b)>();
-		constructor.RegisterArray<decltype(Arrays::c)>();
-		constructor.RegisterArray<decltype(Arrays::d)>();
-		constructor.RegisterArray<decltype(Arrays::e)>();
-		constructor.RegisterArray<decltype(Arrays::f)>();
-		constructor.RegisterArray<decltype(Arrays::g)>();
-
-
-		if (auto handle = constructor.RegisterStruct<Arrays>())
-		{
-			handle.RegisterMember("a", &Arrays::a);
-			handle.RegisterMember("b", &Arrays::b);
-			handle.RegisterMember("c", &Arrays::c);
-			handle.RegisterMember("d", &Arrays::d);
-			handle.RegisterMember("e", &Arrays::e);
-			handle.RegisterMember("f", &Arrays::f);
-			handle.RegisterMember("g", &Arrays::g);
-		}
-		constructor.Bind("arrays", new Arrays);
-
-
-
-		// end NEW
 
 		model_handle = constructor.GetModelHandle();
 
@@ -434,17 +166,6 @@ namespace InvadersExample {
 		Rml::Colourb color{ 255, 255, 255 };
 		Rml::Vector<int> damage;
 		float danger_rating = 50;
-
-		void GetColor(Rml::Variant& variant) {
-			variant = "rgba(" + Rml::ToString(color) + ')';
-		}
-		void SetColor(const Rml::Variant& variant) {
-			using namespace Rml;
-			String str = variant.Get<String>();
-			if (str.size() > 6)
-				str = str.substr(5, str.size() - 6);
-			color = Rml::FromString<Colourb>(variant.Get<String>());
-		}
 	};
 
 	struct InvadersData {
@@ -487,7 +208,7 @@ namespace InvadersExample {
 		);
 
 		// Since Invader::damage is an array type.
-		//constructor.RegisterArray<Rml::Vector<int>>();
+		constructor.RegisterArray<Rml::Vector<int>>();
 
 		// Structs are registered by adding all its members through the returned handle.
 		if (auto invader_handle = constructor.RegisterStruct<Invader>())
@@ -497,9 +218,6 @@ namespace InvadersExample {
 			invader_handle.RegisterMember("color", &Invader::color);
 			invader_handle.RegisterMember("damage", &Invader::damage);
 			invader_handle.RegisterMember("danger_rating", &Invader::danger_rating);
-
-			// Getter and setter functions can also be used.
-			//invader_handle.RegisterMemberFunc("color", &Invader::GetColor);
 		}
 
 		// We can even have an Array of Structs, infinitely nested if we so desire.
