@@ -43,7 +43,7 @@ namespace Rml {
 #define RMLUI_LOG_TYPE_ERROR_ASSERT(T, val, msg) RMLUI_ASSERTMSG(val, (String(msg) + String(" T: ") + String(rmlui_type_name<T>())).c_str())
 
 template<typename T>
-struct is_valid_data_scalar {
+struct is_builtin_data_scalar {
 	static constexpr bool value = std::is_arithmetic<T>::value
 		|| std::is_same<typename std::remove_cv<T>::type, String>::value;
 };
@@ -145,7 +145,7 @@ public:
 	template<typename T>
 	bool RegisterScalar(DataTypeGetFunc<T> get_func, DataTypeSetFunc<T> set_func)
 	{
-		static_assert(!is_valid_data_scalar<T>::value, "Cannot register scalar data type function. Arithmetic types and String are handled internally and does not need to be registered.");
+		static_assert(!is_builtin_data_scalar<T>::value, "Cannot register scalar data type function. Arithmetic types and String are handled internally and does not need to be registered.");
 		FamilyId id = Family<T>::Id();
 
 		auto scalar_func_definition = MakeUnique<ScalarFuncDefinition<T>>(get_func, set_func);
@@ -174,7 +174,7 @@ private:
 
 	// Get definition for scalar types that can be assigned to and from Rml::Variant.
 	// We automatically register these when needed, so users don't have to register trivial types manually.
-	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value&& is_valid_data_scalar<T>::value, int>::type = 0>
+	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && is_builtin_data_scalar<T>::value, int>::type = 0>
 	VariableDefinition* GetDefinitionDetail()
 	{
 		FamilyId id = Family<T>::Id();
@@ -191,7 +191,7 @@ private:
 
 	// Get definition for non-scalar types.
 	// These must already have been registered by the user.
-	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && !is_valid_data_scalar<T>::value, int>::type = 0>
+	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && !is_builtin_data_scalar<T>::value, int>::type = 0>
 	VariableDefinition* GetDefinitionDetail()
 	{
 		FamilyId id = Family<T>::Id();
@@ -278,8 +278,8 @@ inline StructHandle<Object>& StructHandle<Object>::RegisterMemberScalar(const St
 	using UnderlyingType = typename std::conditional<std::is_null_pointer<BasicReturnType>::value, BasicAssignType, BasicReturnType>::type;
 
 	static_assert(std::is_null_pointer<ReturnType>::value || std::is_null_pointer<AssignType>::value || std::is_same<BasicReturnType, BasicAssignType>::value, "Provided getter and setter functions must get and set the same type.");
-	static_assert(std::is_copy_assignable<UnderlyingType>::value, "Struct member getter and setter functions must return/assign a type that is copy assignable.");
-	static_assert(std::is_default_constructible<UnderlyingType>::value, "Struct member getter and setter functions must return/assign a type that is default constructible.");
+	static_assert(std::is_copy_assignable<UnderlyingType>::value, "Struct member getter/setter functions must return/assign a type that is copy assignable.");
+	static_assert(std::is_default_constructible<UnderlyingType>::value, "Struct member getter/setter functions must return/assign a type that is default constructible.");
 
 	VariableDefinition* underlying_definition = type_register->GetDefinition<UnderlyingType>();
 	if (!underlying_definition)
