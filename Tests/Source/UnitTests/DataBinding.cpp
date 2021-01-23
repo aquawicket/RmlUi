@@ -167,6 +167,7 @@ struct Wrapped
 	StringWrap* b = new StringWrap("b");
 	const StringWrap* c = new StringWrap("c");
 
+	// Illegal: Must return by reference, or return scalar value.
 	StringWrap GetD() {
 		return { "d" };
 	}
@@ -195,7 +196,7 @@ struct Pointed
 	StringWrapPtr a = MakeUnique<StringWrap>("a");
 
 	// We disallow recursive pointer types (pointer to pointer)
-	// -- Invalid
+	// Invalid: 
 	StringWrapPtr* b = new StringWrapPtr(new StringWrap("b"));
 	const StringWrapPtr* c = new StringWrapPtr(new StringWrap("c"));
 
@@ -300,51 +301,51 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("a", &Basic::a);
 		handle.RegisterMember("b", &Basic::b);
 		handle.RegisterMember("c", &Basic::c);
-		handle.RegisterMemberGetter("d", &Basic::GetD);
-		handle.RegisterMemberGetter("e", &Basic::GetE);
-		handle.RegisterMemberGetter("f", &Basic::GetF);
-		handle.RegisterMemberGetter("g", &Basic::GetG);
-		handle.RegisterMemberGetter("h", &Basic::GetH);
+		handle.RegisterMemberScalar("d", &Basic::GetD);
+		handle.RegisterMember("e", &Basic::GetE);
+		handle.RegisterMember("f", &Basic::GetF);
+		handle.RegisterMember("g", &Basic::GetG);
+		handle.RegisterMember("h", &Basic::GetH);
 	}
 	constructor.Bind("basic", new Basic);
-
+	
 	if (auto handle = constructor.RegisterStruct<Wrapped>())
 	{
 		handle.RegisterMember("a", &Wrapped::a);
 		handle.RegisterMember("b", &Wrapped::b);
 		handle.RegisterMember("c", &Wrapped::c);
-		handle.RegisterMemberGetter("d", &Wrapped::GetD);
-		handle.RegisterMemberGetter("e", &Wrapped::GetE);
-		handle.RegisterMemberGetter("f", &Wrapped::GetF);
-		handle.RegisterMemberGetter("g", &Wrapped::GetG);
-		handle.RegisterMemberGetter("h", &Wrapped::GetH);
+		//handle.RegisterMemberScalar("d", &Wrapped::GetD);
+		handle.RegisterMember("e", &Wrapped::GetE);
+		handle.RegisterMember("f", &Wrapped::GetF);
+		handle.RegisterMember("g", &Wrapped::GetG);
+		handle.RegisterMember("h", &Wrapped::GetH);
 	}
 	constructor.Bind("wrapped", new Wrapped);
-
+	
 	if (auto handle = constructor.RegisterStruct<Pointed>())
 	{
 		handle.RegisterMember("a", &Pointed::a);
 		//handle.RegisterMember("b", &Pointed::b);
 		//handle.RegisterMember("c", &Pointed::c);
-		//handle.RegisterMemberGetter("d", &Pointed::GetD);
-		handle.RegisterMemberGetter("e", &Pointed::GetE);
-		handle.RegisterMemberGetter("f", &Pointed::GetF);
-		handle.RegisterMemberGetter("g", &Pointed::GetG);
-		handle.RegisterMemberGetter("h", &Pointed::GetH);
+		//handle.RegisterMember("d", &Pointed::GetD);
+		handle.RegisterMember("e", &Pointed::GetE);
+		handle.RegisterMember("f", &Pointed::GetF);
+		handle.RegisterMember("g", &Pointed::GetG);
+		handle.RegisterMember("h", &Pointed::GetH);
 	}
 	constructor.Bind("pointed", new Pointed);
 
-
+	
 	if (auto handle = constructor.RegisterStruct<ConstPointed>())
 	{
 		handle.RegisterMember("a", &ConstPointed::a);
 		//handle.RegisterMember("b", &ConstPointed::b);
 		//handle.RegisterMember("c", &ConstPointed::c);
 		//handle.RegisterMemberGetter("d", &ConstPointed::GetD);
-		handle.RegisterMemberGetter("e", &ConstPointed::GetE);
-		handle.RegisterMemberGetter("f", &ConstPointed::GetF);
-		handle.RegisterMemberGetter("g", &ConstPointed::GetG);
-		handle.RegisterMemberGetter("h", &ConstPointed::GetH);
+		handle.RegisterMember("e", &ConstPointed::GetE);
+		handle.RegisterMember("f", &ConstPointed::GetF);
+		handle.RegisterMember("g", &ConstPointed::GetG);
+		handle.RegisterMember("h", &ConstPointed::GetH);
 	}
 	constructor.Bind("const_pointed", new ConstPointed);
 
@@ -369,7 +370,7 @@ bool InitializeDataBindings(Context* context)
 		handle.RegisterMember("g", &Arrays::g);
 	}
 	constructor.Bind("arrays", new Arrays);
-
+	
 	model_handle = constructor.GetModelHandle();
 
 	return true;
