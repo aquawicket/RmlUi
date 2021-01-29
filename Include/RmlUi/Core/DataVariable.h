@@ -38,7 +38,7 @@
 
 namespace Rml {
 
-enum class DataVariableType { Scalar, Array, Struct, Function, MemberFunction };
+enum class DataVariableType { Scalar, Array, Struct };
 
 
 /*
@@ -112,7 +112,7 @@ public:
 
 class FuncDefinition final : public VariableDefinition {
 public:
-	FuncDefinition(DataGetFunc get, DataSetFunc set) : VariableDefinition(DataVariableType::Function), get(std::move(get)), set(std::move(set)) {}
+	FuncDefinition(DataGetFunc get, DataSetFunc set) : VariableDefinition(DataVariableType::Scalar), get(std::move(get)), set(std::move(set)) {}
 
 	bool Get(void* /*ptr*/, Variant& variant) override
 	{
@@ -136,7 +136,7 @@ private:
 template<typename T>
 class ScalarFuncDefinition final : public VariableDefinition {
 public:
-	ScalarFuncDefinition(DataTypeGetFunc<T> get, DataTypeSetFunc<T> set) : VariableDefinition(DataVariableType::Function), get(get), set(set) {}
+	ScalarFuncDefinition(DataTypeGetFunc<T> get, DataTypeSetFunc<T> set) : VariableDefinition(DataVariableType::Scalar), get(get), set(set) {}
 
 	bool Get(void* ptr, Variant& variant) override
 	{

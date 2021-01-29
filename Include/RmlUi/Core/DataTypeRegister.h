@@ -242,7 +242,7 @@ private:
 		return definition.get();
 	}
 
-	// Get definition for non-scalar types.
+	// Get definition for types that are not a built-in scalar.
 	// These must already have been registered by the user.
 	template<typename T, typename std::enable_if<!PointerTraits<T>::is_pointer::value && !is_builtin_data_scalar<T>::value, int>::type = 0>
 	VariableDefinition* GetDefinitionDetail()
@@ -415,8 +415,7 @@ bool StructHandle<Object>::CreateMemberScalarGetSetFuncDefinition(const String& 
 	if (!underlying_definition)
 		return false;
 
-	DataVariableType type = underlying_definition->Type();
-	if (!(type == DataVariableType::Scalar || type == DataVariableType::Function))
+	if (underlying_definition->Type() != DataVariableType::Scalar)
 	{
 		RMLUI_LOG_TYPE_ERROR(UnderlyingType, "Non-scalar data variable member registered, but only scalar data variables are allowed here: A getter function returning by value, or a getter/setter function pair.");
 		return false;
