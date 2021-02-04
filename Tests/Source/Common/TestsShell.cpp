@@ -40,10 +40,10 @@
 #include <doctest.h>
 
 // Uncomment the following to render to the shell window instead of the dummy renderer.
-#define RMLUI_TESTS_USE_SHELL
+//#define RMLUI_TESTS_USE_SHELL
 
 // Uncomment the following line to enable rendering the context in a loop. Requires the shell backend. Useful for viewing the result while building RML.
-#define RMLUI_TESTS_ENABLE_RENDER_LOOP
+//#define RMLUI_TESTS_ENABLE_RENDER_LOOP
 
 
 namespace {
