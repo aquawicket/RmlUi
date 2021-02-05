@@ -71,7 +71,7 @@ public:
 	template<typename T>
 	bool Bind(const String& name, T* ptr) {
 		RMLUI_ASSERTMSG(ptr, "Invalid pointer to data variable");
-		return BindVariable(name, DataVariable(type_register->GetDefinition<T>(), (void*)ptr));
+		return BindVariable(name, DataVariable(type_register->GetDefinition<T>(), ptr));
 	}
 	
 	// Bind a get/set function pair.
