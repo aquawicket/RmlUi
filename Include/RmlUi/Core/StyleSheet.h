@@ -106,13 +106,6 @@ private:
 	// Root level node, attributes from special nodes like "body" get added to this node
 	UniquePtr<StyleSheetNode> root;
 
-	// The maximum specificity offset used in this style sheet to distinguish between properties in
-	// similarly-specific rules, but declared on different lines. When style sheets are merged, the
-	// more-specific style sheet (ie, coming further 'down' the include path) adds the offset of
-	// the less-specific style sheet onto its offset, thereby ensuring its properties take
-	// precedence in the event of a conflict.
-	int specificity_offset;
-
 	// Name of every @keyframes mapped to their keys
 	KeyframesMap keyframes;
 

@@ -70,7 +70,7 @@ public:
 	StyleSheetNode* GetOrCreateChildNode(const StyleSheetNode& other);
 
 	/// Merges an entire tree hierarchy into our hierarchy.
-	void MergeHierarchy(StyleSheetNode* node, int specificity_offset = 0);
+	void MergeHierarchy(StyleSheetNode* node);
 	/// Copy this node including all descendent nodes.
 	UniquePtr<StyleSheetNode> DeepCopy(StyleSheetNode* parent = nullptr) const;
 	/// Recursively set structural volatility.
@@ -80,12 +80,10 @@ public:
 	/// Optimizes some properties recursively for faster retrieval. In particular, decorators and font effects.
 	void OptimizeProperties(const StyleSheet& style_sheet);
 
-	/// Imports properties from a single rule definition into the node's properties and sets the
-	/// appropriate specificity on them. Any existing attributes sharing a key with a new attribute
-	/// will be overwritten if they are of a lower specificity.
+	/// Merges properties from a single rule definition into the node's properties, overwriting
+	/// any existing properties with the same ID.
 	/// @param[in] properties The properties to import.
-	/// @param[in] rule_specificity The specificity of the importing rule.
-	void ImportProperties(const PropertyDictionary& properties, int rule_specificity);
+	void MergeProperties(const PropertyDictionary& properties);
 	/// Returns the node's default properties.
 	const PropertyDictionary& GetProperties() const;
 

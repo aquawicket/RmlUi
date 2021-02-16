@@ -31,12 +31,6 @@
 
 namespace Rml {
 
-Property::Property() : unit(UNKNOWN), specificity(-1)
-{
-	definition = nullptr;
-	parser_index = -1;
-}
-
 String Property::ToString() const
 {
 	if (!definition)

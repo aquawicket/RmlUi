@@ -341,7 +341,7 @@ bool StyleSheetParser::ParseKeyframeBlock(KeyframesMap& keyframes_map, const Str
 			it->properties = PropertyDictionary();
 		}
 
-		it->properties.Import(properties);
+		it->properties.Merge(properties);
 	}
 
 	return true;
@@ -507,18 +507,16 @@ bool StyleSheetParser::ParseMediaFeatureMap(PropertyDictionary& properties, cons
 	return true;
 }
 
-int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int begin_line_number)
+bool StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int begin_line_number)
 {
 	RMLUI_ZoneScoped;
 
-	int rule_count = 0;
 	line_number = begin_line_number;
 	stream = _stream;
 	stream_file_name = StringUtilities::Replace(stream->GetSourceURL().GetURL(), '|', ':');
 
 	enum class State { Global, AtRuleIdentifier, KeyframeBlock, Invalid };
 	State state = State::Global;
-
 
 	MediaBlock current_block = {};
 
@@ -563,10 +561,8 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 					{
 						auto source = MakeShared<PropertySource>(stream_file_name, rule_line_number, rule_name_list[i]);
 						properties.SetSourceOfAllProperties(source);
-						ImportProperties(current_block.stylesheet->root.get(), rule_name_list[i], properties, rule_count);
+						ImportProperties(current_block.stylesheet->root.get(), rule_name_list[i], properties);
 					}
-
-					rule_count++;
 				}
 				else if (token == '@')
 				{
@@ -576,7 +572,6 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 				{
 					// Complete current block
 					PostprocessKeyframes(current_block.stylesheet->keyframes);
-					current_block.stylesheet->specificity_offset = rule_count;
 					style_sheets.push_back(std::move(current_block));
 					current_block = {};
 
@@ -651,7 +646,6 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 						if (current_block.stylesheet)
 						{
 							PostprocessKeyframes(current_block.stylesheet->keyframes);
-							current_block.stylesheet->specificity_offset = rule_count;
 							style_sheets.push_back(std::move(current_block));
 							current_block = {};
 						}
@@ -729,11 +723,10 @@ int StyleSheetParser::Parse(MediaBlockList& style_sheets, Stream* _stream, int b
 	if (current_block.stylesheet)
 	{
 		PostprocessKeyframes(current_block.stylesheet->keyframes);
-		current_block.stylesheet->specificity_offset = rule_count;
 		style_sheets.push_back(std::move(current_block));
 	}
 
-	return rule_count;
+	return !style_sheets.empty();
 }
 
 bool StyleSheetParser::ParseProperties(PropertyDictionary& parsed_properties, const String& properties)
@@ -758,7 +751,7 @@ StyleSheetNodeListRaw StyleSheetParser::ConstructNodes(StyleSheetNode& root_node
 
 	for (const String& selector : selector_list)
 	{
-		StyleSheetNode* leaf_node = ImportProperties(&root_node, selector, empty_properties, 0);
+		StyleSheetNode* leaf_node = ImportProperties(&root_node, selector, empty_properties);
 
 		if (leaf_node != &root_node)
 			leaf_nodes.push_back(leaf_node);
@@ -868,7 +861,7 @@ bool StyleSheetParser::ReadProperties(AbstractPropertyParser& property_parser)
 	return true;
 }
 
-StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity)
+StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties)
 {
 	StyleSheetNode* leaf_node = node;
 
@@ -955,7 +948,7 @@ StyleSheetNode* StyleSheetParser::ImportProperties(StyleSheetNode* node, String 
 	}
 
 	// Merge the new properties with those already on the leaf node.
-	leaf_node->ImportProperties(properties, rule_specificity);
+	leaf_node->MergeProperties(properties);
 
 	return leaf_node;
 }

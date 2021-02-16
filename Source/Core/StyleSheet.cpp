@@ -52,7 +52,6 @@ inline static bool StyleSheetNodeSort(const StyleSheetNode* lhs, const StyleShee
 StyleSheet::StyleSheet()
 {
 	root = MakeUnique<StyleSheetNode>();
-	specificity_offset = 0;
 }
 
 StyleSheet::~StyleSheet()
@@ -67,7 +66,7 @@ UniquePtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 	UniquePtr<StyleSheet> new_sheet = UniquePtr<StyleSheet>(new StyleSheet());
 	
 	new_sheet->root = root->DeepCopy();
-	new_sheet->root->MergeHierarchy(other_sheet.root.get(), specificity_offset);
+	new_sheet->root->MergeHierarchy(other_sheet.root.get());
 
 	// Any matching @keyframe names are overridden as per CSS rules
 	new_sheet->keyframes.reserve(keyframes.size() + other_sheet.keyframes.size());
@@ -91,8 +90,7 @@ UniquePtr<StyleSheet> StyleSheet::CombineStyleSheet(const StyleSheet& other_shee
 	);
 	new_sheet->spritesheet_list = spritesheet_list;
 	new_sheet->spritesheet_list.Merge(other_sheet.spritesheet_list);
-
-	new_sheet->specificity_offset = specificity_offset + other_sheet.specificity_offset;
+	
 	return new_sheet;
 }
 

@@ -89,17 +89,17 @@ StyleSheetNode* StyleSheetNode::GetOrCreateChildNode(String&& tag, String&& id, 
 }
 
 // Merges an entire tree hierarchy into our hierarchy.
-void StyleSheetNode::MergeHierarchy(StyleSheetNode* node, int specificity_offset)
+void StyleSheetNode::MergeHierarchy(StyleSheetNode* node)
 {
 	RMLUI_ZoneScoped;
 
 	// Merge the other node's properties into ours.
-	properties.Merge(node->properties, specificity_offset);
+	properties.Merge(node->properties);
 
 	for (const auto& other_child : node->children)
 	{
 		StyleSheetNode* local_node = GetOrCreateChildNode(*other_child);
-		local_node->MergeHierarchy(other_child.get(), specificity_offset);
+		local_node->MergeHierarchy(other_child.get());
 	}
 }
 
@@ -231,9 +231,9 @@ int StyleSheetNode::GetSpecificity() const
 
 // Imports properties from a single rule definition (ie, with a shared specificity) into the node's
 // properties.
-void StyleSheetNode::ImportProperties(const PropertyDictionary& _properties, int rule_specificity)
+void StyleSheetNode::MergeProperties(const PropertyDictionary& _properties)
 {
-	properties.Import(_properties, specificity + rule_specificity);
+	properties.Merge(_properties);
 }
 
 // Returns the node's default properties.

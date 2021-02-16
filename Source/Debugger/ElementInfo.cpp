@@ -644,8 +644,6 @@ void ElementInfo::BuildElementPropertiesRML(String& property_rml, Element* eleme
 		[](const NamedProperty& a, const NamedProperty& b) {
 			if (a.second->source && !b.second->source) return false;
 			if (!a.second->source && b.second->source) return true;
-			if (a.second->specificity < b.second->specificity) return false;
-			if (a.second->specificity > b.second->specificity) return true;
 			if (a.second->definition && !b.second->definition) return false;
 			if (!a.second->definition && b.second->definition) return true;
 			const String& a_name = StyleSheetSpecification::GetPropertyName(a.second->definition->GetId());

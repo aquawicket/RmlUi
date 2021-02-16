@@ -71,25 +71,14 @@ const PropertyMap& PropertyDictionary::GetProperties() const
 	return properties;
 }
 
-// Imports potentially un-specified properties into the dictionary.
-void PropertyDictionary::Import(const PropertyDictionary& other, int property_specificity)
-{
-	for (const auto& pair : other.properties)
-	{
-		const PropertyId id = pair.first;
-		const Property& property = pair.second;
-		SetProperty(id, property, property_specificity > 0 ? property_specificity : property.specificity);
-	}
-}
-
 // Merges the contents of another fully-specified property dictionary with this one.
-void PropertyDictionary::Merge(const PropertyDictionary& other, int specificity_offset)
+void PropertyDictionary::Merge(const PropertyDictionary& other)
 {
 	for (const auto& pair : other.properties)
 	{
 		const PropertyId id = pair.first;
 		const Property& property = pair.second;
-		SetProperty(id, property, property.specificity + specificity_offset);
+		properties[id] = property;
 	}
 }
 
@@ -97,18 +86,6 @@ void PropertyDictionary::SetSourceOfAllProperties(const SharedPtr<const Property
 {
 	for (auto& p : properties)
 		p.second.source = property_source;
-}
-
-// Sets a property on the dictionary and its specificity.
-void PropertyDictionary::SetProperty(PropertyId id, const Property& property, int specificity)
-{
-	PropertyMap::iterator iterator = properties.find(id);
-	if (iterator != properties.end() &&
-		iterator->second.specificity > specificity)
-		return;
-
-	Property& new_property = (properties[id] = property);
-	new_property.specificity = specificity;
 }
 
 } // namespace Rml

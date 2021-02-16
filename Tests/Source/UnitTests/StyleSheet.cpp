@@ -41,7 +41,7 @@ static const String simple_doc1_rml = R"(
 	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
 	<style>
 		body {
-			width: 48px;
+			width: 50px;
 		}
 	</style>
 </head>
@@ -54,7 +54,7 @@ static const String simple_doc2_rml = R"(
 	<title>Test</title>
 	<style>
 		body {
-			width: 48px;
+			width: 50px;
 		}
 	</style>
 	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
@@ -68,7 +68,7 @@ static const String simple_doc3_rml = R"(
 	<title>Test</title>
 	<style>
 		body.narrow {
-			width: 48px;
+			width: 50px;
 		}
 	</style>
 	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
@@ -76,9 +76,210 @@ static const String simple_doc3_rml = R"(
 <body class="narrow"/>
 </rml>
 )";
+static const String simple_doc4_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+	<style>
+		body { width: 200px; }
+		@media (min-width: 100px) {
+			body { width: 50px; }
+		}
+	</style>
+</head>
+<body/>
+</rml>
+)";
+static const String simple_doc5_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+	<style>
+		@media (min-width: 100px) {
+			body { width: 50px; }
+		}
+		body { width: 200px; }
+	</style>
+</head>
+<body/>
+</rml>
+)";
+static const String simple_doc6_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<style>
+		body { width: 200px; }
+		@media (min-width: 100px) {
+			body { width: 50px; }
+		}
+	</style>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+</head>
+<body/>
+</rml>
+)";
+static const String simple_doc7_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<style>
+		@media (min-width: 100px) {
+			body { width: 50px; }
+		}
+		body { width: 200px; }
+	</style>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+</head>
+<body/>
+</rml>
+)";
+static const String simple_doc8_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+	<style>
+		@media (min-width: 100px) {
+			body { width: 50px; }
+		}
+		body { width: 200px; }
+	</style>
+</head>
+<body/>
+</rml>
+)";
+static const String simple_doc9_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+	<style>
+		@media (min-width: 100px) {
+			body { width: 50px; }
+		}
+		body { width: 200px; }
+	</style>
+	<style>
+		body { width: 300px; }
+		@media (min-width: 100px) {
+			body { width: 400px; }
+		}
+	</style>
+</head>
+<body/>
+</rml>
+)";
+static const String simple_doc10_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+	<style>
+		@media (min-width: 100px) {
+			body { width: 50px; }
+		}
+		body { width: 200px; }
+	</style>
+	<style>
+		@media (min-width: 100px) {
+			body { width: 400px; }
+		}
+		body { width: 300px; }
+	</style>
+</head>
+<body/>
+</rml>
+)";
+static const String simple_doc11_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+	<style>
+		@media (min-width: 100px) {
+			body { width: 50px; }
+		}
+		body { width: 200px; }
+	</style>
+	<style>
+		body { width: 300px; }
+		@media (min-width: 200px) {
+			body { width: 400px; }
+		}
+	</style>
+</head>
+<body/>
+</rml>
+)";
+static const String simple_doc12_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+	<style>
+		@media (min-width: 100px) {
+			body { width: 50px; }
+		}
+		body { width: 200px; }
+	</style>
+	<style>
+		@media (min-width: 200px) {
+			body { width: 400px; }
+		}
+		body { width: 300px; }
+	</style>
+</head>
+<body/>
+</rml>
+)";
+static const String simple_doc13_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<style>
+		@media (min-width: 100px) {
+			body { width: 50px; }
+		}
+		body { width: 200px; }
+	</style>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+	<style>
+		@media (min-width: 200px) {
+			body { width: 400px; }
+		}
+		body { width: 300px; }
+	</style>
+</head>
+<body/>
+</rml>
+)";
+static const String simple_doc14_rml = R"(
+<rml>
+<head>
+	<title>Test</title>
+	<style>
+		@media (min-width: 100px) {
+			body { width: 50px; }
+		}
+		body { width: 200px; }
+	</style>
+	<style>
+		@media (min-width: 200px) {
+			body { width: 400px; }
+		}
+		body { width: 300px; }
+	</style>
+	<link type="text/rcss" href="/../Tests/Data/UnitTests/test.rcss"/>
+</head>
+<body/>
+</rml>
+)";
 
 
-TEST_CASE("stylesheet.override_basic")
+TEST_CASE("stylesheet.specificity")
 {
 	Context* context = TestsShell::GetContext();
 	REQUIRE(context);
@@ -89,11 +290,23 @@ TEST_CASE("stylesheet.override_basic")
 	};
 
 	Test tests[] = {
-		{&simple_doc1_rml, 48.f},
+		{&simple_doc1_rml, 50.f},
 		{&simple_doc2_rml, 100.f},
-		{&simple_doc3_rml, 48.f},
+		{&simple_doc3_rml, 50.f},
+		{&simple_doc4_rml, 50.f},
+		{&simple_doc5_rml, 200.f},
+		{&simple_doc6_rml, 100.f},
+		{&simple_doc7_rml, 100.f},
+		{&simple_doc8_rml, 200.f},
+		{&simple_doc9_rml, 400.f},
+		{&simple_doc10_rml, 300.f},
+		{&simple_doc11_rml, 400.f},
+		{&simple_doc12_rml, 300.f},
+		{&simple_doc13_rml, 300.f},
+		{&simple_doc14_rml, 100.f},
 	};
 
+	int i = 1;
 	for (const Test& test : tests)
 	{
 		ElementDocument* document = context->LoadDocumentFromMemory(*test.document_rml);
@@ -105,9 +318,10 @@ TEST_CASE("stylesheet.override_basic")
 
 		TestsShell::RenderLoop();
 
-		CHECK(document->GetBox().GetSize().x == test.expected_width);
+		CHECK_MESSAGE(document->GetBox().GetSize().x == test.expected_width, "Document " << i);
 
 		document->Close();
+		i++;
 	}
 
 	TestsShell::ShutdownShell();

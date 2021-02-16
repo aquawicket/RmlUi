@@ -100,15 +100,13 @@ public:
 		ANGLE = DEG | RAD
 	};
 
-	Property();
+	Property() : unit(UNKNOWN)
+	{}
 	template < typename PropertyType >
-	Property(PropertyType value, Unit unit, int specificity = -1) : value(value), unit(unit), specificity(specificity)
-	{
-		definition = nullptr;
-		parser_index = -1;
-	}
+	Property(PropertyType value, Unit unit) : value(value), unit(unit)
+	{}
 	template<typename EnumType, typename = typename std::enable_if< std::is_enum<EnumType>::value, EnumType >::type>
-	Property(EnumType value) : value(static_cast<int>(value)), unit(KEYWORD), specificity(-1) {}
+	Property(EnumType value) : value(static_cast<int>(value)), unit(KEYWORD) {}
 
 	/// Get the value of the property as a string.
 	String ToString() const;
@@ -125,7 +123,6 @@ public:
 
 	Variant value;
 	Unit unit;
-	int specificity;
 
 	const PropertyDefinition* definition = nullptr;
 	int parser_index = -1;

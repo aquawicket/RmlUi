@@ -58,9 +58,10 @@ public:
 
 	/// Parses the given stream into the style sheet
 	/// @param style_sheets The collection of style sheets to write into, organized into media blocks
+	/// @param begin_line_number The used line number for the first line in the stream, for reporting errors.
 	/// @param stream The stream to read
-	/// @return The number of parsed rules, or -1 if an error occured.
-	int Parse(MediaBlockList& style_sheets, Stream* stream, int begin_line_number);
+	/// @return True on success, false on failure.
+	bool Parse(MediaBlockList& style_sheets, Stream* stream, int begin_line_number);
 
 	/// Parses the given string into the property dictionary
 	/// @param parsed_properties The properties dictionary the properties will be read into
@@ -100,9 +101,8 @@ private:
 	// @param node Node to import into
 	// @param names The names of the nodes
 	// @param properties The dictionary of properties
-	// @param rule_specificity The specifity of the rule
 	// @return The leaf node of the rule
-	static StyleSheetNode* ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties, int rule_specificity);
+	static StyleSheetNode* ImportProperties(StyleSheetNode* node, String rule_name, const PropertyDictionary& properties);
 
 	// Attempts to parse a @keyframes block
 	bool ParseKeyframeBlock(KeyframesMap & keyframes_map, const String & identifier, const String & rules, const PropertyDictionary & properties);
